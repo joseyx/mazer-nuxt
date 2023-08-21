@@ -5,21 +5,21 @@ export default defineNuxtConfig({
     "assets/scss/iconly.scss",
   ],
 
-  plugins: [
-    { src: '~/plugins/bootstrap.client', mode: 'client' },
-  ],
-  modules: [
-    '@pinia/nuxt',
-    '@nuxtjs/google-fonts',
-    '@nuxtjs/color-mode'
-  ],
+  plugins: [{ src: "~/plugins/bootstrap.client", mode: "client" }],
+  modules: ["@pinia/nuxt", "@nuxtjs/google-fonts", "@nuxtjs/color-mode"],
   colorMode: {
-    classPrefix: 'theme-',
-    classSuffix: ''
+    classPrefix: "theme-",
+    classSuffix: "",
   },
   googleFonts: {
     families: {
-      'Nunito': true,
+      Nunito: true,
     },
   },
-})
+  ssr: false,
+  runtimeConfig: {
+    public: {
+      countriesKey: process.env.COUNTRIES_KEY,
+    },
+  },
+});
