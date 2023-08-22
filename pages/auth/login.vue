@@ -54,6 +54,8 @@
 import { ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
+
+const token = useCookie("token");
 definePageMeta({
   layout: "1-column",
 });
@@ -70,7 +72,7 @@ const onSubmit = () => {
       password: password.value,
     })
     .then((res) => {
-      document.cookie = res.data.token;
+      token.value = res.data.token;
       if (res.data.user.is_admin == 1) {
         router.push("/");
       } else {
