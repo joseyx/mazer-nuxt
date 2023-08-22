@@ -113,13 +113,11 @@
                     aria-label=".form-select-lg example"
                     v-model="country"
                   >
-                    <!-- <option selected v-if="nombrePais != ''">
-                      {{ nombrePais }}
-                    </option> -->
                     <option
-                      v-for="country in countries"
-                      :key="country.id"
+                      v-for="(country, index) in countries"
+                      :key="index"
                       :value="country"
+                      :selected="country.name === nombrePais"
                     >
                       {{ country.name }}
                     </option>
@@ -127,7 +125,7 @@
                   <div class="text-danger">{{ errorPais }}</div>
                 </div>
 
-                <div class="mb-3" v-if="country.name != ''">
+                <div class="mb-3" v-if="country.states.length > 0">
                   <label for="estado" class="form-label">Estado</label>
                   <select
                     class="form-select form-select-md mb-3"
@@ -135,11 +133,11 @@
                     v-model="state"
                   >
                     <option
-                      v-for="state in states"
-                      :key="state.id"
-                      :value="state.name"
+                      v-for="(state, index) in country.states"
+                      :key="index"
+                      :value="state"
                     >
-                      {{ state.name }}
+                      {{ state }}
                     </option>
                   </select>
                   <div class="text-danger">{{ errorEstado }}</div>
@@ -174,14 +172,14 @@
 
 <script lang="ts">
 import axios from "axios";
+import { countries } from "../../assets/js/countries+states";
 
 export default {
   name: "RegularForm",
   data() {
     return {
-      countries: [{ name: " ", iso2: String, id: Number }],
-      country: { name: "", iso2: String, id: Number },
-      states: [{ name: String, iso2: String, id: Number }],
+      countries: [{ name: "", states: [""] }],
+      country: { name: "", states: [""] },
       state: "Elige un estado",
       nombreEmpresa: "",
       rif: "",
@@ -205,20 +203,7 @@ export default {
     };
   },
   async mounted() {
-    const config = useRuntimeConfig();
     const token = useCookie("token");
-    await axios
-      .get("https://api.countrystatecity.in/v1/countries", {
-        headers: {
-          "X-CSCAPI-KEY": config.public.countriesKey,
-        },
-      })
-      .then((response) => {
-        this.countries = response.data;
-      })
-      .catch((error) => {
-        console.log(error.response);
-      });
     try {
       const response = await axios.get(
         "http://127.0.0.1:8000/api/dashboard/empresa",
@@ -234,37 +219,27 @@ export default {
       this.emailSecondary = response.data.empresa.emailSecondary;
       this.phone = response.data.empresa.phone;
       this.phoneSecondary = response.data.empresa.phoneSecondary;
-      this.country.name = response.data.empresa.pais;
-      this.nombrePais = this.country.name;
-      console.log(this.$refs.country);
+      this.nombrePais = response.data.empresa.pais;
+
       this.state = response.data.empresa.estado;
       this.direccion = response.data.empresa.direccion;
     } catch (error) {}
+
+    this.countries = countries.map((country) => ({
+      name: country.name,
+      states: country.states.map((state) => state.name),
+    }));
+
+    const country = this.countries.filter(
+      (country) => country.name === this.nombrePais
+    );
+
+    this.country = country[0];
   },
   methods: {
-    async getStates() {
-      const config = useRuntimeConfig();
-      await axios
-        .get(
-          `https://api.countrystatecity.in/v1/countries/${this.country.iso2}/states`,
-          {
-            headers: {
-              "X-CSCAPI-KEY": config.public.countriesKey,
-            },
-          }
-        )
-        .then((response) => {
-          this.states = response.data;
-          console.log(response.data);
-        })
-        .catch((error) => {
-          console.log(error.response);
-        });
-    },
     async onSubmit() {
       const token = useCookie("token");
 
-      console.log(token.value);
       try {
         const response = await axios.post(
           "http://127.0.0.1:8000/api/dashboard/form",
@@ -304,11 +279,6 @@ export default {
         this.errorEstado = error.response.data.errors.estado[0];
         this.errorDireccion = error.response.data.errors.direccion[0];
       }
-    },
-  },
-  watch: {
-    country: function () {
-      this.getStates();
     },
   },
 };
