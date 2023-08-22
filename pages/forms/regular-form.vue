@@ -113,6 +113,9 @@
                     aria-label=".form-select-lg example"
                     v-model="country"
                   >
+                    <!-- <option selected v-if="nombrePais != ''">
+                      {{ nombrePais }}
+                    </option> -->
                     <option
                       v-for="country in countries"
                       :key="country.id"
@@ -176,7 +179,7 @@ export default {
   name: "RegularForm",
   data() {
     return {
-      countries: [{ name: String, iso2: String, id: Number }],
+      countries: [{ name: " ", iso2: String, id: Number }],
       country: { name: "", iso2: String, id: Number },
       states: [{ name: String, iso2: String, id: Number }],
       state: "Elige un estado",
@@ -198,10 +201,12 @@ export default {
       errorPais: " ",
       errorEstado: " ",
       errorDireccion: " ",
+      nombrePais: " ",
     };
   },
   async mounted() {
     const config = useRuntimeConfig();
+    const token = useCookie("token");
     await axios
       .get("https://api.countrystatecity.in/v1/countries", {
         headers: {
@@ -214,6 +219,27 @@ export default {
       .catch((error) => {
         console.log(error.response);
       });
+    try {
+      const response = await axios.get(
+        "http://127.0.0.1:8000/api/dashboard/empresa",
+        {
+          headers: {
+            Authorization: `Bearer ${token.value}`,
+          },
+        }
+      );
+      this.nombreEmpresa = response.data.empresa.nombreEmpresa;
+      this.rif = response.data.empresa.rif;
+      this.email = response.data.empresa.email;
+      this.emailSecondary = response.data.empresa.emailSecondary;
+      this.phone = response.data.empresa.phone;
+      this.phoneSecondary = response.data.empresa.phoneSecondary;
+      this.country.name = response.data.empresa.pais;
+      this.nombrePais = this.country.name;
+      console.log(this.$refs.country);
+      this.state = response.data.empresa.estado;
+      this.direccion = response.data.empresa.direccion;
+    } catch (error) {}
   },
   methods: {
     async getStates() {
