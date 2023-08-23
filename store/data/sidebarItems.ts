@@ -5,7 +5,7 @@ export default [
   },
   {
     name: "Dashboard",
-    url: "/",
+    url: "/dashboard",
     icon: "grid-fill",
   },
   {
